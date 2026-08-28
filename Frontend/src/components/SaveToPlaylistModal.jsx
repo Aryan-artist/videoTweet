@@ -17,21 +17,27 @@ const SaveToPlaylistModal = ({ videoId, isOpen, onClose }) => {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (isOpen && user) {
+    if (isOpen && user?._id) {
       fetchPlaylists();
       setShowCreate(false);
       setNewPlaylistName('');
       setNewPlaylistDescription('');
     }
-  }, [isOpen, user]);
+  }, [isOpen, user?._id]);
 
   const fetchPlaylists = async () => {
+    if (!user?._id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await api.get(`/playlist/user/${user._id}`);
-      setPlaylists(res.data.data);
+      setPlaylists(res.data?.data || []);
     } catch (error) {
-      toast.error("Failed to load playlists");
+      if (user?._id) {
+        toast.error(error.response?.data?.message || "Failed to load playlists");
+      }
     } finally {
       setLoading(false);
     }
@@ -49,15 +55,15 @@ const SaveToPlaylistModal = ({ videoId, isOpen, onClose }) => {
       setPlaylists(playlists.map(pl => {
         if (pl._id === playlistId) {
           if (isAlreadyInPlaylist) {
-             return { ...pl, videos: pl.videos.filter(v => v._id !== videoId && v !== videoId) };
+             return { ...pl, videos: (pl.videos || []).filter(v => (v._id || v) !== videoId) };
           } else {
-             return { ...pl, videos: [...pl.videos, { _id: videoId }] };
+             return { ...pl, videos: [...(pl.videos || []), { _id: videoId }] };
           }
         }
         return pl;
       }));
     } catch (error) {
-      toast.error("Failed to update playlist");
+      toast.error(error.response?.data?.message || "Failed to update playlist");
     }
   };
 
@@ -73,8 +79,10 @@ const SaveToPlaylistModal = ({ videoId, isOpen, onClose }) => {
         name: newPlaylistName.trim(),
         description: newPlaylistDescription.trim() || `My Playlist`,
       });
-      const newPlaylist = res.data.data;
-      await api.patch(`/playlist/add/${videoId}/${newPlaylist._id}`);
+      const newPlaylist = res.data?.data;
+      if (newPlaylist?._id) {
+        await api.patch(`/playlist/add/${videoId}/${newPlaylist._id}`);
+      }
       toast.success("Created and added to playlist!");
       
       setNewPlaylistName('');
@@ -141,7 +149,7 @@ const SaveToPlaylistModal = ({ videoId, isOpen, onClose }) => {
           ) : (
             <div className="flex flex-col gap-2">
               {playlists.map(playlist => {
-                const isChecked = playlist.videos?.some(v => v._id === videoId || v === videoId);
+                const isChecked = playlist.videos?.some(v => (v?._id || v) === videoId);
                 
                 return (
                   <label key={playlist._id} className="flex items-center gap-3 cursor-pointer group py-1">
@@ -197,14 +205,14 @@ const SaveToPlaylistModal = ({ videoId, isOpen, onClose }) => {
               </div>
               <div className="flex justify-end gap-2 mt-2">
                 <button 
-                  type="button"
+                  type="button" 
                   onClick={() => setShowCreate(false)}
                   className="px-3 py-1 text-sm font-medium text-white hover:bg-[#272727] rounded transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
-                  type="submit"
+                  type="submit" 
                   disabled={creating || !newPlaylistName.trim()}
                   className="px-3 py-1 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded transition-colors disabled:opacity-50"
                 >
