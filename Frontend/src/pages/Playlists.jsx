@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
-import { ListVideo, Plus, Trash2, Edit, Play } from 'lucide-react';
+import { ListVideo, Plus, Trash2, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Playlists = () => {
@@ -15,15 +15,17 @@ const Playlists = () => {
   const [creating, setCreating] = useState(false);
 
   const fetchPlaylists = async () => {
-    if (!user) {
+    if (!user?._id) {
       setLoading(false);
       return;
     }
     try {
       const res = await api.get(`/playlist/user/${user._id}`);
-      setPlaylists(res.data.data);
+      setPlaylists(res.data?.data || []);
     } catch (error) {
-      toast.error("Failed to load playlists");
+      if (user?._id) {
+        toast.error(error.response?.data?.message || "Failed to load playlists");
+      }
     } finally {
       setLoading(false);
     }
@@ -31,7 +33,7 @@ const Playlists = () => {
 
   useEffect(() => {
     fetchPlaylists();
-  }, [user]);
+  }, [user?._id]);
 
   const handleCreatePlaylist = async (e) => {
     e.preventDefault();
@@ -57,13 +59,13 @@ const Playlists = () => {
   };
 
   const handleDeletePlaylist = async (playlistId) => {
-    if(!window.confirm("Are you sure you want to delete this playlist?")) return;
+    if (!window.confirm("Are you sure you want to delete this playlist?")) return;
     try {
       await api.delete(`/playlist/${playlistId}`);
       toast.success("Playlist deleted");
       fetchPlaylists();
     } catch (error) {
-      toast.error("Failed to delete playlist");
+      toast.error(error.response?.data?.message || "Failed to delete playlist");
     }
   };
 
@@ -77,7 +79,7 @@ const Playlists = () => {
 
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto text-center mt-20">
+      <div className="max-w-2xl mx-auto text-center mt-20 px-4">
         <h2 className="text-2xl font-bold text-white mb-4">You need to sign in to see your playlists!</h2>
         <Link to="/login" className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-full font-bold transition-colors inline-block">
           Sign In
@@ -115,7 +117,7 @@ const Playlists = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {playlists.map((playlist) => {
-            const firstVideo = playlist.videos && playlist.videos.length > 0 ? playlist.videos[0] : null;
+            const firstVideo = playlist.videos && playlist.videos.length > 0 && typeof playlist.videos[0] === 'object' ? playlist.videos[0] : null;
             const targetUrl = firstVideo?._id ? `/video/${firstVideo._id}` : '#';
 
             return (
@@ -143,24 +145,25 @@ const Playlists = () => {
                     {playlist.videos?.length || 0} videos
                   </div>
                 </Link>
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-bold text-white line-clamp-1 flex-1">{playlist.name}</h3>
-                  <button 
-                    onClick={() => handleDeletePlaylist(playlist._id)}
-                    className="text-text-muted hover:text-red-500 transition-colors ml-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-sm text-text-muted line-clamp-2 mb-4">{playlist.description}</p>
-                <div className="mt-auto text-xs text-text-muted">
-                  Updated {new Date(playlist.updatedAt).toLocaleDateString()}
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-bold text-white line-clamp-1 flex-1">{playlist.name}</h3>
+                    <button 
+                      onClick={() => handleDeletePlaylist(playlist._id)}
+                      className="text-text-muted hover:text-red-500 transition-colors ml-2"
+                      title="Delete playlist"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-text-muted line-clamp-2 mb-4">{playlist.description}</p>
+                  <div className="mt-auto text-xs text-text-muted">
+                    Updated {new Date(playlist.updatedAt).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
       )}
 
@@ -198,7 +201,7 @@ const Playlists = () => {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={creating || !newPlaylist.name}
+                  disabled={creating || !newPlaylist.name?.trim()}
                   className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-50"
                 >
                   {creating ? 'Creating...' : 'Create'}

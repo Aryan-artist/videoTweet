@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await api.get('/users/current-user');
-      setUser(response.data.data.user);
+      setUser(response.data?.data?.user || null);
     } catch (error) {
       setUser(null);
       localStorage.removeItem("isLoggedIn");
@@ -32,12 +32,22 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuth();
+
+    const handleUnauthorized = () => {
+      setUser(null);
+      localStorage.removeItem("isLoggedIn");
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
   }, []);
 
   const login = async (data) => {
     try {
       const response = await api.post('/users/login', data);
-      setUser(response.data.data.user);
+      setUser(response.data?.data?.user);
       localStorage.setItem("isLoggedIn", "true");
       toast.success('Logged in successfully');
       return true;
@@ -54,7 +64,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("isLoggedIn");
       toast.success('Logged out successfully');
     } catch (error) {
-      toast.error('Logout failed');
+      setUser(null);
+      localStorage.removeItem("isLoggedIn");
+      toast.error('Logged out');
     }
   };
 
