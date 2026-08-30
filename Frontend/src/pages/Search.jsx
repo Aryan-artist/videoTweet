@@ -17,7 +17,9 @@ const Search = () => {
       setLoading(true);
       try {
         const response = await api.get(`/videos?query=${encodeURIComponent(query)}`);
-        setVideos(response.data.data.docs || []);
+        const allVideos = response.data?.data?.docs || [];
+        const validVideos = allVideos.filter(v => v && v.owner && v.owner.username);
+        setVideos(validVideos);
       } catch (error) {
       } finally {
         setLoading(false);
