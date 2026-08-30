@@ -13,7 +13,9 @@ const Home = () => {
     const fetchVideos = async () => {
       try {
         const response = await api.get('/videos');
-        setVideos(response.data.data.docs || []);
+        const allVideos = response.data?.data?.docs || [];
+        const validVideos = allVideos.filter(v => v && v.owner && v.owner.username);
+        setVideos(validVideos);
       } catch (error) {
       } finally {
         setLoading(false);

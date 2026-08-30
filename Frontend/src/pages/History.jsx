@@ -44,7 +44,7 @@ const History = () => {
       }
     }
 
-    setHistory(combined.filter(v => v && v._id));
+    setHistory(combined.filter(v => v && v._id && v.owner && v.owner.username));
     setLoading(false);
   };
 

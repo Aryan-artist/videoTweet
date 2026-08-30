@@ -25,8 +25,10 @@ const LikedVideos = () => {
     }
     try {
       const response = await api.get('/likes/videos');
-      const data = response.data.data || [];
-      const videos = data.map(item => item.video || item).filter(v => v && v._id);
+      const data = response.data?.data || [];
+      const videos = data
+        .map(item => item.video || item)
+        .filter(v => v && v._id && v.owner && v.owner.username);
       setLikedVideos(videos);
     } catch (error) {
     } finally {
