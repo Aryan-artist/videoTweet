@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Heart, Trash2, Pencil } from 'lucide-react';
+import { MessageSquare, Heart, Trash2, Pencil, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
@@ -128,7 +128,7 @@ const Tweets = () => {
     }
     if (!newComment.trim()) return;
     try {
-      const res = await api.post(`/comments/t/${tweetId}`, { content: newComment });
+      const res = await api.post(`/comments/t/${tweetId}`, { content: newComment.trim() });
       setComments(prev => ({
         ...prev,
         [tweetId]: [res.data.data, ...(prev[tweetId] || [])]
@@ -148,7 +148,7 @@ const Tweets = () => {
 
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto text-center mt-20">
+      <div className="max-w-2xl mx-auto text-center mt-20 px-4">
         <h2 className="text-2xl font-bold text-white mb-4">You need to sign in to see tweets!</h2>
         <Link to="/login" className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-full font-bold transition-colors inline-block">
           Log In
@@ -158,32 +158,32 @@ const Tweets = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6 text-white">Global Tweets</h1>
+    <div className="max-w-2xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white px-2">Global Tweets</h1>
 
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-bg-panel border border-border rounded-xl p-4 mb-8 shadow-sm"
+        className="bg-bg-panel border border-border rounded-xl p-3 sm:p-4 mb-6 sm:mb-8 shadow-sm"
       >
-        <div className="flex gap-4">
+        <div className="flex gap-2.5 sm:gap-4">
           <img 
             src={user.avatar || 'https://via.placeholder.com/50'} 
             alt="Avatar" 
-            className="w-12 h-12 rounded-full border border-border object-cover flex-shrink-0"
+            className="w-9 h-9 sm:w-12 sm:h-12 rounded-full border border-border object-cover flex-shrink-0"
           />
-          <form onSubmit={handleCreateTweet} className="flex-1 flex flex-col gap-3">
+          <form onSubmit={handleCreateTweet} className="flex-1 min-w-0 flex flex-col gap-3">
             <textarea 
               value={newTweet}
               onChange={(e) => setNewTweet(e.target.value)}
               placeholder="What's on your mind?"
-              className="w-full bg-transparent resize-none outline-none text-white placeholder-text-muted text-lg min-h-[80px]"
+              className="w-full bg-transparent resize-none outline-none text-white placeholder-text-muted text-base sm:text-lg min-h-[70px] sm:min-h-[80px]"
             />
             <div className="flex justify-end pt-2 border-t border-border">
               <button 
                 type="submit" 
                 disabled={!newTweet.trim()}
-                className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary hover:bg-primary-hover text-white px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-sm sm:text-base font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Tweet
               </button>
@@ -192,7 +192,7 @@ const Tweets = () => {
         </div>
       </motion.div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {loading ? (
           <div className="flex justify-center py-10">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -208,28 +208,28 @@ const Tweets = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               key={tweet._id} 
-              className="bg-bg-panel border border-border rounded-xl p-4 hover:bg-bg-hover transition-colors"
+              className="bg-bg-panel border border-border rounded-xl p-3 sm:p-4 hover:bg-bg-hover transition-colors overflow-hidden"
             >
-              <div className="flex gap-4">
+              <div className="flex gap-2.5 sm:gap-4">
                 <img 
                   src={tweet.ownerDetails?.avatar || 'https://via.placeholder.com/50'} 
                   alt={tweet.ownerDetails?.username || 'User'} 
-                  className="w-12 h-12 rounded-full border border-border object-cover flex-shrink-0"
+                  className="w-9 h-9 sm:w-12 sm:h-12 rounded-full border border-border object-cover flex-shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-white">{tweet.ownerDetails?.username || 'Unknown'}</h3>
-                      <span className="text-text-muted text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
+                      <h3 className="font-bold text-white text-sm sm:text-base truncate">{tweet.ownerDetails?.username || 'Unknown'}</h3>
+                      <span className="text-text-muted text-xs sm:text-sm truncate">
                         @{tweet.ownerDetails?.username || 'user'} • {new Date(tweet.createdAt).toLocaleDateString()}
                         {tweet.createdAt !== tweet.updatedAt && (
-                          <span className="ml-2 italic text-xs text-text-muted">(edited)</span>
+                          <span className="ml-1 italic text-[11px] text-text-muted">(edited)</span>
                         )}
                       </span>
                     </div>
                     
                     {user && tweet.ownerDetails?._id === user._id && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         <button 
                           onClick={() => {
                             setEditingTweetId(tweet._id);
@@ -238,14 +238,14 @@ const Tweets = () => {
                           className="text-text-muted hover:text-blue-500 p-1 transition-colors rounded-full hover:bg-blue-500/10"
                           title="Edit Tweet"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                         <button 
                           onClick={() => handleDeleteTweet(tweet._id)}
                           className="text-text-muted hover:text-red-500 p-1 transition-colors rounded-full hover:bg-red-500/10"
                           title="Delete Tweet"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                       </div>
                     )}
@@ -256,49 +256,49 @@ const Tweets = () => {
                       <textarea
                         value={editingContent}
                         onChange={(e) => setEditingContent(e.target.value)}
-                        className="w-full bg-bg-dark border border-border rounded-lg p-3 text-white focus:border-primary outline-none resize-none"
+                        className="w-full bg-bg-dark border border-border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base text-white focus:border-primary outline-none resize-none"
                         rows="3"
                       />
                       <div className="flex justify-end gap-2 mt-2">
                         <button 
                           type="button" 
                           onClick={() => setEditingTweetId(null)}
-                          className="px-4 py-1.5 rounded-full text-sm font-medium text-text-muted hover:bg-bg-dark transition-colors"
+                          className="px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium text-text-muted hover:bg-bg-dark transition-colors"
                         >
                           Cancel
                         </button>
                         <button 
                           type="submit" 
                           disabled={!editingContent.trim() || editingContent === tweet.content}
-                          className="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+                          className="bg-primary hover:bg-primary-hover text-white px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors disabled:opacity-50"
                         >
                           Save
                         </button>
                       </div>
                     </form>
                   ) : (
-                    <p className="text-white mt-2 whitespace-pre-wrap">{tweet.content}</p>
+                    <p className="text-white mt-2 text-sm sm:text-base whitespace-pre-wrap break-words">{tweet.content}</p>
                   )}
                   
-                  <div className="flex items-center gap-6 mt-4 text-text-muted">
+                  <div className="flex items-center gap-6 mt-3 sm:mt-4 text-text-muted">
                     <button 
                       onClick={() => handleToggleComments(tweet._id)}
-                      className="flex items-center gap-2 hover:text-primary transition-colors group"
+                      className="flex items-center gap-1.5 sm:gap-2 hover:text-primary transition-colors group"
                     >
-                      <div className={`p-2 rounded-full transition-colors ${activeCommentTweet === tweet._id ? 'bg-primary/20 text-primary' : 'group-hover:bg-primary/10'}`}>
+                      <div className={`p-1.5 sm:p-2 rounded-full transition-colors ${activeCommentTweet === tweet._id ? 'bg-primary/20 text-primary' : 'group-hover:bg-primary/10'}`}>
                         <MessageSquare className="w-4 h-4" />
                       </div>
-                      <span className="text-sm">{tweet.commentsCount || 0}</span>
+                      <span className="text-xs sm:text-sm">{tweet.commentsCount || 0}</span>
                     </button>
                     
                     <button 
                       onClick={() => handleToggleLike(tweet._id)}
-                      className={`flex items-center gap-2 transition-colors group ${tweet.isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+                      className={`flex items-center gap-1.5 sm:gap-2 transition-colors group ${tweet.isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
                     >
-                      <div className={`p-2 rounded-full transition-colors ${tweet.isLiked ? 'bg-red-500/20' : 'group-hover:bg-red-500/10'}`}>
+                      <div className={`p-1.5 sm:p-2 rounded-full transition-colors ${tweet.isLiked ? 'bg-red-500/20' : 'group-hover:bg-red-500/10'}`}>
                         <Heart className={`w-4 h-4 ${tweet.isLiked ? 'fill-current' : ''}`} />
                       </div>
-                      <span className="text-sm">{tweet.likesCount || 0}</span>
+                      <span className="text-xs sm:text-sm">{tweet.likesCount || 0}</span>
                     </button>
                   </div>
 
@@ -308,29 +308,34 @@ const Tweets = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 pt-4 border-t border-border overflow-hidden"
+                        className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border overflow-hidden"
                       >
-                        <form onSubmit={(e) => handleAddComment(e, tweet._id)} className="flex gap-3 mb-4">
+                        <form onSubmit={(e) => handleAddComment(e, tweet._id)} className="flex items-center gap-2 mb-3 sm:mb-4 w-full">
                           <img 
                             src={user?.avatar || 'https://via.placeholder.com/32'} 
                             alt="Avatar" 
-                            className="w-8 h-8 rounded-full border border-border object-cover flex-shrink-0"
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border object-cover flex-shrink-0"
                           />
-                          <input
-                            type="text"
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder={user ? "Add a comment..." : "Log in to comment..."}
-                            disabled={!user}
-                            className="flex-1 bg-bg-dark border border-border rounded-full px-4 py-1.5 text-sm text-white focus:border-primary focus:outline-none transition-colors disabled:opacity-50"
-                          />
-                          <button 
-                            type="submit"
-                            disabled={!user || !newComment.trim()}
-                            className="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors disabled:opacity-50"
-                          >
-                            Reply
-                          </button>
+                          <div className="flex-1 min-w-0 flex items-center gap-1.5 bg-bg-dark border border-border rounded-full px-3 py-1 focus-within:border-primary transition-colors">
+                            <input
+                              type="text"
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
+                              placeholder={user ? "Add a comment..." : "Log in to comment..."}
+                              disabled={!user}
+                              className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm text-white placeholder-text-muted focus:outline-none disabled:opacity-50 py-1"
+                            />
+                            {newComment.trim() && (
+                              <button 
+                                type="submit"
+                                disabled={!user || !newComment.trim()}
+                                className="bg-primary hover:bg-primary-hover text-white px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium transition-colors disabled:opacity-50 flex-shrink-0 flex items-center gap-1"
+                              >
+                                <span>Reply</span>
+                                <Send className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
                         </form>
 
                         {commentsLoading ? (
@@ -338,27 +343,27 @@ const Tweets = () => {
                             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                           </div>
                         ) : (
-                          <div className="space-y-4">
+                          <div className="space-y-3">
                             {comments[tweet._id]?.length === 0 ? (
-                              <p className="text-center text-sm text-text-muted py-2">No comments yet. Be the first!</p>
+                              <p className="text-center text-xs sm:text-sm text-text-muted py-2">No comments yet. Be the first!</p>
                             ) : (
                               comments[tweet._id]?.map(comment => (
-                                <div key={comment._id} className="flex gap-3">
+                                <div key={comment._id} className="flex gap-2 sm:gap-3">
                                   <img 
                                     src={comment.owner?.avatar || 'https://via.placeholder.com/32'} 
                                     alt="Avatar" 
-                                    className="w-8 h-8 rounded-full border border-border object-cover flex-shrink-0 mt-1"
+                                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-border object-cover flex-shrink-0 mt-1"
                                   />
-                                  <div className="flex-1">
+                                  <div className="flex-1 min-w-0 bg-bg-dark/50 rounded-xl p-2 sm:p-2.5">
                                     <div className="flex items-baseline gap-2">
-                                      <span className="font-bold text-white text-sm">
+                                      <span className="font-bold text-white text-xs sm:text-sm truncate">
                                         {comment.owner?.username || 'Unknown'}
                                       </span>
-                                      <span className="text-xs text-text-muted">
+                                      <span className="text-[10px] sm:text-xs text-text-muted flex-shrink-0">
                                         {new Date(comment.createdAt).toLocaleDateString()}
                                       </span>
                                     </div>
-                                    <p className="text-sm text-gray-300 mt-0.5">{comment.content}</p>
+                                    <p className="text-xs sm:text-sm text-gray-300 mt-0.5 break-words">{comment.content}</p>
                                   </div>
                                 </div>
                               ))
