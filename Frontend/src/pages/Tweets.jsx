@@ -29,7 +29,8 @@ const Tweets = () => {
     setLoading(true);
     try {
       const response = await api.get('/tweets');
-      setTweets(response.data.data || []);
+      const validTweets = (response.data?.data || []).filter(t => t.ownerDetails && t.ownerDetails.username);
+      setTweets(validTweets);
     } catch (error) {
     } finally {
       setLoading(false);

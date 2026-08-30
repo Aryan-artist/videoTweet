@@ -89,6 +89,11 @@ const getUserTweets = asyncHandler(async (req, res) => {
             }
         },
         {
+            $match: {
+                ownerDetails: { $ne: null }
+            }
+        },
+        {
             $sort: {
                 createdAt: -1
             }
@@ -223,6 +228,11 @@ const getAllTweets = asyncHandler(async (req, res) => {
                 ownerDetails: {
                     $first: "$ownerDetails"
                 }
+            }
+        },
+        {
+            $match: {
+                ownerDetails: { $ne: null }
             }
         },
         {
