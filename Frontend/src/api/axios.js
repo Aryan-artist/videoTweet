@@ -7,6 +7,18 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Request interceptor: attach Authorization header if token exists in localStorage (fixes mobile cross-site cookie blocking)
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -38,20 +50,43 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => api(originalRequest))
+          .then((token) => {
+            if (token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
           .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+
       try {
-        await api.post('/users/refresh-token');
-        processQueue(null);
+        const res = await api.post('/users/refresh-token', {
+          refreshToken: storedRefreshToken || undefined,
+        });
+
+        const newAccessToken = res.data?.data?.accessToken;
+        const newRefreshToken = res.data?.data?.refreshToken;
+
+        if (newAccessToken) {
+          localStorage.setItem('accessToken', newAccessToken);
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
+        }
+
+        processQueue(null, newAccessToken);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         window.dispatchEvent(new Event('auth:unauthorized'));
         return Promise.reject(refreshError);
       } finally {
