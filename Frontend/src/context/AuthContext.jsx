@@ -12,8 +12,9 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const token = localStorage.getItem("accessToken");
     
-    if (!isLoggedIn) {
+    if (!isLoggedIn && !token) {
       setUser(null);
       setLoading(false);
       return;
@@ -25,6 +26,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       setUser(null);
       localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     } finally {
       setLoading(false);
     }
@@ -36,6 +39,8 @@ export const AuthProvider = ({ children }) => {
     const handleUnauthorized = () => {
       setUser(null);
       localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     };
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
@@ -47,8 +52,19 @@ export const AuthProvider = ({ children }) => {
   const login = async (data) => {
     try {
       const response = await api.post('/users/login', data);
-      setUser(response.data?.data?.user);
+      const userData = response.data?.data?.user;
+      const accessToken = response.data?.data?.accessToken;
+      const refreshToken = response.data?.data?.refreshToken;
+
+      setUser(userData);
       localStorage.setItem("isLoggedIn", "true");
+      if (accessToken) {
+        localStorage.setItem("accessToken", accessToken);
+      }
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
       toast.success('Logged in successfully');
       return true;
     } catch (error) {
@@ -60,13 +76,14 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post('/users/logout');
-      setUser(null);
-      localStorage.removeItem("isLoggedIn");
-      toast.success('Logged out successfully');
     } catch (error) {
+      // Ignore network errors on logout
+    } finally {
       setUser(null);
       localStorage.removeItem("isLoggedIn");
-      toast.error('Logged out');
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      toast.success('Logged out successfully');
     }
   };
 
