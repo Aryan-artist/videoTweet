@@ -129,9 +129,19 @@ const Tweets = () => {
     if (!newComment.trim()) return;
     try {
       const res = await api.post(`/comments/t/${tweetId}`, { content: newComment.trim() });
+      const addedComment = {
+        ...res.data?.data,
+        owner: {
+          _id: user._id,
+          username: user.username,
+          avatar: user.avatar,
+          fullname: user.fullname
+        },
+        createdAt: res.data?.data?.createdAt || new Date().toISOString()
+      };
       setComments(prev => ({
         ...prev,
-        [tweetId]: [res.data.data, ...(prev[tweetId] || [])]
+        [tweetId]: [addedComment, ...(prev[tweetId] || [])]
       }));
       setNewComment('');
       setTweets(tweets.map(t => {
