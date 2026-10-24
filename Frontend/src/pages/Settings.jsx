@@ -72,7 +72,19 @@ const Settings = () => {
       toast.success("Password changed successfully!");
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to change password");
+      if (error.response?.status === 429) {
+        const rateLimitMessage =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          'Too many requests from this IP, please try again after a minute';
+        toast.error(rateLimitMessage);
+      } else {
+        const errorMessage =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          'Failed to change password';
+        toast.error(errorMessage);
+      }
     } finally {
       setPasswordLoading(false);
     }

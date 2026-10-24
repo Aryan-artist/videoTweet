@@ -64,7 +64,19 @@ const Signup = () => {
       toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      if (error.response?.status === 429) {
+        const rateLimitMessage =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          'Too many requests from this IP, please try again after a minute';
+        toast.error(rateLimitMessage);
+      } else {
+        const errorMessage =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          'Registration failed';
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

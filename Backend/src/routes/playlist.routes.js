@@ -9,6 +9,7 @@ import {
     updatePlaylist,
 } from "../controllers/playlist.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
+import { strictlimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = Router();
 
@@ -19,11 +20,11 @@ router.route("/").post(createPlaylist)
 router
     .route("/:playlistId")
     .get(getPlaylistById)
-    .patch(updatePlaylist)
-    .delete(deletePlaylist);
+    .patch(strictlimiter,updatePlaylist)
+    .delete(strictlimiter,deletePlaylist);
 
-router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
-router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
+router.route("/add/:videoId/:playlistId").patch(strictlimiter,addVideoToPlaylist);
+router.route("/remove/:videoId/:playlistId").patch(strictlimiter,removeVideoFromPlaylist);
 
 router.route("/user/:userId").get(getUserPlaylists);
 

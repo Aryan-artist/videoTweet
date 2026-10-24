@@ -68,7 +68,19 @@ export const AuthProvider = ({ children }) => {
       toast.success('Logged in successfully');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      if (error.response?.status === 429) {
+        const rateLimitMessage =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          'Too many requests from this IP, please try again after a minute';
+        toast.error(rateLimitMessage);
+      } else {
+        const errorMessage =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          'Login failed';
+        toast.error(errorMessage);
+      }
       return false;
     }
   };

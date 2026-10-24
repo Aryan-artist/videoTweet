@@ -2,7 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import e from 'express'
+import { limiter } from './middlewares/rateLimiter.middleware.js'
 
 const app = express()
 app.use(cors({
@@ -10,7 +10,7 @@ app.use(cors({
     credentials: true
 }))
 app.use(express.json({
-    limit: '50mb'
+    limit: '16kb'
 }))
 app.use(express.urlencoded({
     limit: '16kb',
@@ -31,6 +31,10 @@ import playlistRouter from "./routes/playlist.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 
 app.use("/api/v1/healthcheck", healthcheckRouter)
+
+app.use(limiter);
+
+
 app.use('/api/v1/users', userRoutes)
 app.use("/api/v1/tweets", tweetRouter)
 app.use("/api/v1/subscriptions", subscriptionRouter)
@@ -40,5 +44,17 @@ app.use("/api/v1/likes", likeRouter)
 app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/playlists", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
+
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    return res.status(statusCode).json({
+        success: false,
+        statusCode,
+        message,
+        errors: err.errors || []
+    });
+});
 
 export { app }

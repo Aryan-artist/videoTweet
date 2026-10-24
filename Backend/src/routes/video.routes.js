@@ -10,6 +10,7 @@ import {
 } from "../controllers/video.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 import {upload} from "../middlewares/multer.middleware.js"
+import { strictlimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router
     .get(getAllVideos)
     .post(
         verifyJWT,
+        strictlimiter,
         upload.fields([
             {
                 name: "videoFile",
@@ -38,7 +40,7 @@ router
     .route("/:videoId")
     .get(getVideoById)
     .delete(verifyJWT, deleteVideo)
-    .patch(verifyJWT, upload.single("thumbnail"), updateVideo);
+    .patch(verifyJWT,strictlimiter, upload.single("thumbnail"), updateVideo);
 
 router.route("/toggle/publish/:videoId").patch(verifyJWT, togglePublishStatus);
 

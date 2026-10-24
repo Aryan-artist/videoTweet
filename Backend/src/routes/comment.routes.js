@@ -8,13 +8,14 @@ import {
     addTweetComment
 } from "../controllers/comment.controller.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
+import { strictlimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = Router();
 
 router.use(verifyJWT);
 
-router.route("/:videoId").get(getVideoComments).post(addComment);
-router.route("/t/:tweetId").get(getTweetComments).post(addTweetComment);
-router.route("/c/:commentId").delete(deleteComment).patch(updateComment);
+router.route("/:videoId").get(getVideoComments).post(strictlimiter,addComment);
+router.route("/t/:tweetId").get(getTweetComments).post(strictlimiter,addTweetComment);
+router.route("/c/:commentId").delete(strictlimiter,deleteComment).patch(strictlimiter,updateComment);
 
 export default router

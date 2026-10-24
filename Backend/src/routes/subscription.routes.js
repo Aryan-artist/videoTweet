@@ -5,6 +5,7 @@ import {
     toggleSubscription,
 } from "../controllers/subscription.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
+import { strictlimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = Router();
 router.use(verifyJWT);
@@ -12,7 +13,7 @@ router.use(verifyJWT);
 router
     .route("/c/:channelId")
     .get(getUserChannelSubscribers)
-    .post(toggleSubscription);
+    .post(strictlimiter,toggleSubscription);
 
 router.route("/u/:subscriberId").get(getSubscribedChannels);
 

@@ -230,11 +230,11 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found or unauthorized");
     }
 
-    await Likes.deleteMany({
+    await Like.deleteMany({
         video: videoId
     })
 
-    await Comments.deleteMany({
+    await Comment.deleteMany({
         video: videoId
     })
 

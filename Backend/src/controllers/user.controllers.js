@@ -176,16 +176,16 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000
         }
 
-        const { accessToken, newrefreshToken } = await generateAccessandRefreshToken(user._id)
+        const { accessToken, refreshToken } = await generateAccessandRefreshToken(user._id)
 
         return res
             .status(200)
             .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newrefreshToken, options)
+            .cookie("refreshToken", refreshToken, options)
             .json(
                 new ApiResponse(200, "Access token refreshed successfully", {
                     accessToken,
-                    refreshToken: newrefreshToken
+                    refreshToken
                 })
             )
     } catch (error) {
